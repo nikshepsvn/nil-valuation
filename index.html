@@ -1,0 +1,872 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NIL Valuation Lab</title>
+<meta name="description" content="What is $NIL worth if onchain markets go encrypted? A scenario model for Nillion Covenants: sealed order flow, fees, value accrual, multiples, unlocks and live onchain usage.">
+<meta property="og:title" content="NIL Valuation Lab">
+<meta property="og:description" content="What is $NIL worth if onchain markets go encrypted? Live data, scenario model, unlocks, peers.">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%274%27 fill=%27%231F1FFF%27/%3E%3Ctext x=%2716%27 y=%2722%27 font-family=%27monospace%27 font-size=%2714%27 font-weight=%27700%27 fill=%27white%27 text-anchor=%27middle%27%3ENIL%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,400..800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: an electric-blue cover with live stats, then numbered chapters down one wide column. Model inputs and results sit side by side; charts are hand-drawn SVG. */
+:root {
+  --bg: #F3F4FA;
+  --surface: #FFFFFF;
+  --ink: #0B0C1E;
+  --muted: #585B7A;
+  --faint: #8D90AE;
+  --line: #DBDDEC;
+  --accent: #1F1FFF;
+  --on-accent: #FFFFFF;
+  --accent-soft: #E7E7FF;
+  --pos: #0E8159;
+  --neg: #BF3434;
+  --warn: #A86A00;
+  --display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #07081A; --surface: #0F112E; --ink: #E9EAFB; --muted: #9EA0C6; --faint: #6D709A; --line: #23264F;
+    --accent: #4B4BFF; --on-accent: #FFFFFF; --accent-soft: #1A1C55; --pos: #3DD39A; --neg: #FF7D7D; --warn: #F2B544;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #07081A; --surface: #0F112E; --ink: #E9EAFB; --muted: #9EA0C6; --faint: #6D709A; --line: #23264F;
+  --accent: #4B4BFF; --on-accent: #FFFFFF; --accent-soft: #1A1C55; --pos: #3DD39A; --neg: #FF7D7D; --warn: #F2B544;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.55; }
+a { color: var(--accent); text-underline-offset: 2px; }
+.wrap { max-width: 1140px; margin: 0 auto; padding-inline: 20px; padding-block: 20px 80px; display: grid; gap: 72px; }
+h1, h2, h3 { font-family: var(--display); margin: 0; line-height: 1.06; text-wrap: balance; }
+h2 { font-size: clamp(1.55rem, 3.2vw, 2.2rem); font-weight: 700; font-stretch: 112%; letter-spacing: -0.012em; }
+h3 { font-size: 1rem; font-weight: 600; }
+p { margin: 0; }
+.eyebrow { font-family: var(--mono); font-size: .74rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.lede { color: var(--muted); max-width: 720px; font-size: 1.02rem; }
+.note { color: var(--muted); font-size: .84rem; }
+section { display: grid; gap: 24px; scroll-margin-top: 64px; }
+.head { display: grid; gap: 10px; max-width: 780px; }
+.chap { display: flex; gap: 12px; align-items: baseline; }
+.chap b { font-family: var(--mono); font-weight: 500; color: var(--accent); font-size: .8rem; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 22px; display: grid; gap: 16px; min-width: 0; align-content: start; }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+button { font: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* nav */
+.nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+.nav-in { max-width: 1140px; margin: 0 auto; padding: 10px 20px; display: flex; gap: 18px; align-items: center; overflow-x: auto; scrollbar-width: none; }
+.nav-in::-webkit-scrollbar { display: none; }
+.brand { font-family: var(--display); font-weight: 700; font-stretch: 115%; white-space: nowrap; }
+.nav a { font-family: var(--mono); font-size: .76rem; color: var(--muted); text-decoration: none; white-space: nowrap; }
+.nav a:hover { color: var(--ink); }
+.nav .spacer { flex: 1; }
+.themebtn { border: 1px solid var(--line); background: var(--surface); color: var(--muted); border-radius: 3px; padding: 4px 9px; font-family: var(--mono); font-size: .74rem; cursor: pointer; white-space: nowrap; }
+
+/* cover */
+.cover { background: var(--accent); color: var(--on-accent); border-radius: 4px; padding: clamp(22px, 4.5vw, 52px); display: grid; gap: 30px; position: relative; overflow: hidden; }
+.cover .tag { font-family: var(--mono); font-size: .75rem; opacity: .85; letter-spacing: .05em; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; position: relative; }
+.cover h1 { font-size: clamp(2.3rem, 6.6vw, 4.9rem); font-weight: 600; letter-spacing: -0.028em; max-width: 13ch; position: relative; }
+.cover p { max-width: 640px; opacity: .92; font-size: 1.05rem; position: relative; }
+.dots { position: absolute; right: -60px; top: -60px; width: 420px; height: 420px; opacity: .16; background-image: radial-gradient(circle, #fff 1.2px, transparent 1.5px); background-size: 12px 12px; border-radius: 50%; pointer-events: none; }
+.strip { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border-top: 1px solid rgba(255,255,255,.35); padding-top: 18px; gap: 14px 10px; position: relative; }
+.strip div { display: grid; gap: 2px; min-width: 0; }
+.strip span { font-family: var(--mono); font-size: .68rem; text-transform: uppercase; letter-spacing: .08em; opacity: .75; display: flex; align-items: center; gap: 6px; }
+.strip b { font-family: var(--mono); font-size: 1.2rem; font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.live::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #7CFFB2; box-shadow: 0 0 6px #7CFFB2; }
+.live.stale::before { background: rgba(255,255,255,.5); box-shadow: none; }
+@media (max-width: 860px) { .strip { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 480px) { .strip { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* thesis */
+.three { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 860px) { .three { grid-template-columns: 1fr; } }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 22px; display: grid; gap: 10px; align-content: start; }
+.card .big { font-family: var(--display); font-size: 2rem; font-weight: 700; font-stretch: 110%; color: var(--accent); font-variant-numeric: tabular-nums; line-height: 1; }
+.card p { color: var(--muted); font-size: .93rem; }
+
+/* reality */
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; }
+.kpi { padding: 18px 20px; display: grid; gap: 4px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); margin: 0 -1px -1px 0; min-width: 0; }
+.kpi span { font-size: .82rem; color: var(--muted); }
+.kpi b { font-family: var(--mono); font-size: 1.45rem; font-weight: 500; font-variant-numeric: tabular-nums; }
+.kpi small { color: var(--faint); font-size: .76rem; }
+@media (max-width: 860px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.verdict { border-left: 3px solid var(--warn); padding: 4px 0 4px 16px; max-width: 760px; }
+
+/* model */
+.presets { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.presets button, .chips button { font-family: var(--mono); font-size: .8rem; padding: 7px 13px; border-radius: 3px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+.presets button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chips button { font-size: .72rem; padding: 4px 8px; color: var(--muted); }
+.chips button:hover { color: var(--ink); border-color: var(--faint); }
+.model { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); gap: 20px; align-items: start; }
+@media (max-width: 900px) { .model { grid-template-columns: 1fr; } }
+.group { display: grid; gap: 14px; padding-bottom: 18px; border-bottom: 1px solid var(--line); }
+.group:last-child { border-bottom: 0; padding-bottom: 0; }
+.field { display: grid; gap: 5px; }
+.field .top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.field label { font-size: .9rem; }
+.field small { color: var(--muted); font-size: .77rem; display: block; }
+.field output { font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--accent); white-space: nowrap; font-size: .88rem; }
+.flag { font-family: var(--mono); font-size: .66rem; letter-spacing: .06em; text-transform: uppercase; color: var(--warn); border: 1px solid currentColor; border-radius: 2px; padding: 0 4px; margin-left: 6px; vertical-align: 1px; }
+input[type=range] { width: 100%; accent-color: var(--accent); margin: 2px 0; }
+select { font: inherit; font-size: .9rem; padding: 7px 10px; border-radius: 3px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); width: 100%; }
+.results { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 60px); }
+@media (max-width: 900px) { .results { position: static; } }
+.hero-num { display: grid; gap: 4px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+.hero-num b { font-family: var(--display); font-size: clamp(2.5rem, 6vw, 3.6rem); font-weight: 700; font-stretch: 110%; color: var(--accent); font-variant-numeric: tabular-nums; line-height: 1; }
+.delta { font-family: var(--mono); font-size: .95rem; }
+.up { color: var(--pos); } .down { color: var(--neg); }
+.row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.row:last-child { border-bottom: 0; }
+.row span { color: var(--muted); font-size: .87rem; }
+.row b { font-family: var(--mono); font-weight: 500; font-variant-numeric: tabular-nums; text-align: right; }
+.callout { background: var(--accent-soft); border-radius: 3px; padding: 12px 14px; font-size: .87rem; }
+.share { display: flex; gap: 8px; flex-wrap: wrap; }
+.share button { flex: 1; font-family: var(--mono); font-size: .78rem; padding: 9px 12px; border-radius: 3px; border: 1px solid var(--accent); background: transparent; color: var(--accent); cursor: pointer; }
+.share button.primary { background: var(--accent); color: var(--on-accent); }
+
+/* tables */
+.scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: .87rem; }
+th, td { padding: 10px 14px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
+th { font-family: var(--mono); font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 400; white-space: nowrap; }
+td.n, th.n { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+th.n { font-family: var(--mono); }
+tr:last-child td { border-bottom: 0; }
+tr.self td { background: var(--accent-soft); font-weight: 600; }
+.sens { min-width: 640px; }
+.sens td { font-family: var(--mono); font-variant-numeric: tabular-nums; text-align: right; }
+.sens td:first-child { text-align: left; color: var(--muted); }
+.sens td.hot { background: var(--accent-soft); }
+.sens td.cur { outline: 2px solid var(--accent); outline-offset: -2px; }
+.peers { min-width: 720px; }
+.barcell { width: 26%; }
+.bar { height: 8px; background: var(--accent); border-radius: 1px; min-width: 2px; }
+.toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 3px; overflow: hidden; justify-self: start; }
+.toggle button { font-family: var(--mono); font-size: .76rem; padding: 6px 12px; border: 0; background: var(--surface); color: var(--muted); cursor: pointer; }
+.toggle button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+
+/* charts */
+.chart { width: 100%; height: auto; display: block; }
+.chart text { font-family: var(--mono); font-size: 11px; fill: var(--muted); }
+.chart .lbl { fill: var(--ink); font-size: 12px; }
+.chart .grid { stroke: var(--line); stroke-width: 1; }
+.chart .area { fill: var(--accent); opacity: .12; }
+.chart .linep { fill: none; stroke: var(--accent); stroke-width: 2.25; }
+.chart .mark { stroke: var(--ink); stroke-width: 1; stroke-dasharray: 3 3; }
+.chart .dot { fill: var(--accent); stroke: var(--surface); stroke-width: 2; }
+.chart .b { fill: var(--faint); opacity: .55; }
+.chart .b.me { fill: var(--accent); opacity: 1; }
+.two { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, .75fr); gap: 20px; align-items: start; }
+@media (max-width: 900px) { .two { grid-template-columns: 1fr; } }
+.meter { height: 12px; background: var(--line); border-radius: 2px; overflow: hidden; }
+.meter i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .2s; }
+
+/* context */
+.ctx { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--line); }
+@media (max-width: 860px) { .ctx { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 480px) { .ctx { grid-template-columns: 1fr; } }
+.ctx div { padding: 16px 16px 16px 0; border-bottom: 1px solid var(--line); display: grid; gap: 3px; align-content: start; }
+.ctx b { font-family: var(--mono); font-size: 1.3rem; font-weight: 500; font-variant-numeric: tabular-nums; }
+.ctx span { color: var(--muted); font-size: .86rem; }
+.ctx a { font-size: .74rem; font-family: var(--mono); }
+
+/* roadmap */
+.road { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); overflow: hidden; }
+.road li { padding: 16px 14px; border-right: 1px solid var(--line); display: grid; gap: 6px; align-content: start; min-width: 0; }
+.road li:last-child { border-right: 0; }
+.road li.now { background: var(--accent); color: var(--on-accent); }
+.road li.now .note, .road li.now time { color: var(--on-accent); opacity: .85; }
+.road time { font-family: var(--mono); font-size: .7rem; color: var(--muted); }
+.road h3 { font-size: .98rem; }
+.road .note { font-size: .8rem; }
+.road .val { font-family: var(--mono); font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; }
+@media (max-width: 1000px) { .road { grid-template-columns: 1fr; } .road li { border-right: 0; border-bottom: 1px solid var(--line); } .road li:last-child { border-bottom: 0; } }
+
+/* risks + watch */
+.risks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 32px; }
+@media (max-width: 760px) { .risks { grid-template-columns: 1fr; } }
+.risks div { padding: 14px 0; border-top: 1px solid var(--line); display: grid; gap: 4px; }
+.risks p { color: var(--muted); font-size: .9rem; }
+.watch { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; }
+.watch li { display: grid; grid-template-columns: 110px minmax(0, 1fr) auto; gap: 14px; padding: 14px 18px; border-bottom: 1px solid var(--line); align-items: baseline; }
+.watch li:last-child { border-bottom: 0; }
+.watch .st { font-family: var(--mono); font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; }
+.st.no { color: var(--neg); } .st.wip { color: var(--warn); } .st.yes { color: var(--pos); }
+.watch .now { font-family: var(--mono); font-size: .82rem; color: var(--muted); text-align: right; }
+@media (max-width: 600px) { .watch li { grid-template-columns: 1fr; gap: 2px; } .watch .now { text-align: left; } }
+.src { columns: 2; column-gap: 32px; font-size: .82rem; color: var(--muted); padding-left: 1.1em; margin: 0; }
+.src li { break-inside: avoid; margin-bottom: 6px; }
+@media (max-width: 760px) { .src { columns: 1; } }
+footer { border-top: 1px solid var(--line); padding-top: 20px; color: var(--muted); font-size: .82rem; display: grid; gap: 6px; }
+.toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 20px); transform: translateX(-50%); background: var(--ink); color: var(--bg); font-family: var(--mono); font-size: .8rem; padding: 9px 14px; border-radius: 3px; z-index: 20; }
+@media (prefers-reduced-motion: reduce) { .meter i { transition: none; } }
+</style>
+</head>
+<body>
+
+<nav class="nav" aria-label="Sections">
+  <div class="nav-in">
+    <span class="brand">NIL Valuation Lab</span>
+    <a href="#today">Today</a>
+    <a href="#model">Model</a>
+    <a href="#grid">Grid</a>
+    <a href="#supply">Supply</a>
+    <a href="#multiples">Multiples</a>
+    <a href="#peers">Peers</a>
+    <a href="#roadmap">Roadmap</a>
+    <a href="#risks">Risks</a>
+    <span class="spacer"></span>
+    <button class="themebtn" id="themeBtn" type="button">Theme: auto</button>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <header class="cover">
+    <div class="dots" aria-hidden="true"></div>
+    <div class="tag"><span>// nillion / encrypted markets / valuation</span><span id="asOf">snapshot 13 oct 2026</span></div>
+    <h1>What is $NIL worth if markets go encrypted?</h1>
+    <p>Every onchain stop, limit and trigger is public today. Nillion's Covenants seal them until a condition hits. This page measures where that stands today and models what it would be worth if the flow shows up.</p>
+    <div class="strip" aria-live="polite">
+      <div><span class="live stale" id="lvPrice">Price</span><b id="sPrice">$0.0741</b></div>
+      <div><span>Market cap</span><b id="sMcap">$37.6M</b></div>
+      <div><span>FDV</span><b id="sFdv">$74.9M</b></div>
+      <div><span class="live stale" id="lvStake">NIL staked</span><b id="sStake">11.6M</b></div>
+      <div><span class="live stale" id="lvNodes">Nodes</span><b id="sNodes">31</b></div>
+    </div>
+  </header>
+
+  <section id="thesis">
+    <div class="head">
+      <div class="chap"><b>01</b><span class="eyebrow">The thesis in three numbers</span></div>
+      <h2>Markets hide their hand off-chain. Onchain, they can't.</h2>
+    </div>
+    <div class="three">
+      <div class="card"><span class="eyebrow">Off-chain norm</span><span class="big">50.6%</span><h3>of US stock volume runs off-exchange</h3><p>Dark pools alone handled 17.7% in 2025. CME keeps your stop off the book until it triggers. Hiding intent is the default in traditional markets.</p></div>
+      <div class="card"><span class="eyebrow">Onchain reality</span><span class="big">$1.04T</span><h3>of Hyperliquid orders sat on a public book first</h3><p>About 36% of perp DEX volume rests visibly before it fills, per @thatmarkmac's sample of 1,500 wallets. Perp DEXes did $7.9T in 2025.</p></div>
+      <div class="card"><span class="eyebrow">The primitive</span><span class="big">k-of-m</span><h3>Covenants: sealed until the condition hits</h3><p>You encrypt an instruction to a node committee and post it onchain. It opens only when a price or time condition is met, and no single node can read it.</p></div>
+    </div>
+  </section>
+
+  <section id="today">
+    <div class="head">
+      <div class="chap"><b>02</b><span class="eyebrow">Reality check · onchain, Ethereum mainnet</span></div>
+      <h2>Live on Ethereum mainnet since 5 October</h2>
+      <p class="lede">Read directly from Nillion's contracts on Ethereum. Stake and node count refresh live when the page loads.</p>
+    </div>
+    <div class="kpis">
+      <div class="kpi"><span>Mainnet launch</span><b>5 Oct 2026</b><small>Dusk phase, Ethereum L1</small></div>
+      <div class="kpi"><span>Reveal time</span><b>~78s</b><small>median, from condition hit to reveal</small></div>
+      <div class="kpi"><span>Minimum node stake</span><b>70k NIL</b><small>permissionless, rewards follow stake</small></div>
+      <div class="kpi"><span>Nodes registered</span><b id="kNodes">31</b><small>24 have posted a share at least once</small></div>
+      <div class="kpi"><span>NIL staked</span><b id="kStake">11.58M</b><small><span id="kStakePct">2.3%</span> of circulating supply</small></div>
+      <div class="kpi"><span>Emissions</span><b>5.01M/yr</b><small>0.5% of supply, paid to stakers only</small></div>
+      <div class="kpi"><span>Implied staking APR</span><b id="kApr">43%</b><small>emissions ÷ stake, before ETH fees</small></div>
+      <div class="kpi"><span>Protocol fee</span><b>64 NIL</b><small>flat per Covenant, to the treasury</small></div>
+    </div>
+    <p class="verdict">It's early, so today's price is mostly a bet on the roadmap. The rest of this page models what the token could be worth if order flow arrives and fees reach holders, and it marks the inputs that nobody can source yet.</p>
+  </section>
+
+  <section id="model">
+    <div class="head">
+      <div class="chap"><b>03</b><span class="eyebrow">The model</span></div>
+      <h2>Sealed flow × fee × share to $NIL × multiple</h2>
+      <p class="lede">Choose how much of each market gets sealed, what it pays, how much of that reaches the token and what multiple the market gives it. Every setting is saved in the link, so you can share a scenario.</p>
+    </div>
+    <div class="presets" role="group" aria-label="Scenarios">
+      <button type="button" data-preset="bear">Bear</button>
+      <button type="button" data-preset="article">Article case</button>
+      <button type="button" data-preset="bull">Bull</button>
+      <button type="button" data-preset="moon">Moon</button>
+    </div>
+    <div class="model">
+      <div class="panel">
+        <div class="group">
+          <span class="eyebrow">1 · Share of each market sealed</span>
+          <div class="field"><div class="top"><label for="hl">Hyperliquid resting orders</label><output id="hlOut"></output></div><input id="hl" type="range" min="0" max="50" step="0.1"><small>$1.04T/yr (@thatmarkmac). Reachable once Skyglow ships cross-chain settlement (Feb–May 2027).</small></div>
+          <div class="field"><div class="top"><label for="pd">Other perp DEX resting orders</label><output id="pdOut"></output></div><input id="pd" type="range" min="0" max="50" step="0.1"><small>~$1.80T/yr: 36% of $7.9T in 2025, less Hyperliquid. An estimate.</small></div>
+          <div class="field"><div class="top"><label for="sp">Spot DEX volume</label><output id="spOut"></output></div><input id="sp" type="range" min="0" max="20" step="0.1"><small>$3.47T over the last 12 months (DefiLlama). Limit, TWAP and stop orders are the candidates.</small></div>
+          <div class="field"><div class="top"><label for="pm">Prediction markets</label><output id="pmOut"></output></div><input id="pm" type="range" min="0" max="50" step="0.1"><small>~$540B/yr from Kalshi plus Polymarket at $45.3B a month (Aug 2026).</small></div>
+          <div class="field"><div class="top"><label for="ts">Tokenized stocks</label><output id="tsOut"></output></div><input id="ts" type="range" min="0" max="50" step="0.1"><small>~$277B/yr of transfers, $23.1B a month (rwa.xyz, Aug 2026).</small></div>
+          <div class="field"><div class="top"><label for="otc">Crypto OTC</label><output id="otcOut"></output></div><input id="otc" type="range" min="0" max="5" step="0.05"><small>~$14T/yr at ~$39B a day (Finery, 2024). A rough estimate. Sealed settle-when-both-legs-land deals.</small></div>
+          <div class="field"><div class="top"><label for="ot">Vaults, auctions, agents (direct)</label><output id="otOut"></output></div><input id="ot" type="range" min="0" max="2000" step="10"><small>Nobody has measured these. Enter sealed dollars per year directly.</small></div>
+        </div>
+        <div class="group">
+          <span class="eyebrow">2 · What it pays</span>
+          <div class="field"><div class="top"><label for="bps">Fee on sealed notional <span class="flag">unsourced</span></label><output id="bpsOut"></output></div><input id="bps" type="range" min="1" max="30" step="1"><small>The 10 bps figure has circulated as Nillion's proposed fee, but I found no public Nillion source for it. The only live fee is a flat 64 NIL per Covenant. Treat this as an assumption.</small></div>
+          <div class="field"><div class="top"><label for="acc">Share of fees reaching $NIL <span class="flag">not live</span></label><output id="accOut"></output></div><input id="acc" type="range" min="0" max="100" step="5"><small>There's no tokenomics document yet and the roadmap has no burn. Value could come from staking, fee routing, stake-for-capacity (Moonshine) or lower emissions.</small></div>
+        </div>
+        <div class="group">
+          <span class="eyebrow">3 · How the market prices it</span>
+          <div class="field"><div class="top"><label for="mult">Price-to-fees multiple</label><output id="multOut"></output></div><input id="mult" type="range" min="3" max="300" step="1">
+            <div class="chips" aria-label="Reference multiples">
+              <button type="button" data-mult="4">JUP 4×</button><button type="button" data-mult="5">UNI 5×</button><button type="button" data-mult="20">HYPE 20×</button><button type="button" data-mult="43">RAIL 43×</button><button type="button" data-mult="91">TRX 91×</button><button type="button" data-mult="265">SOL 265×</button>
+            </div>
+            <small>Market cap ÷ fees over the last 12 months (DefiLlama, CoinGecko, 13 Oct 2026). ETH is ~1,670× and ZEC ~29,000×, both off this scale.</small>
+          </div>
+          <div class="field"><label for="sup">Supply to divide by</label>
+            <select id="sup">
+              <option value="fdv">Fully diluted · 1,011M NIL</option>
+              <option value="e27">End of 2027 circulating · ~800M NIL</option>
+              <option value="circ">Circulating today · ~508M NIL</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel results" aria-live="polite">
+        <div class="hero-num">
+          <span class="eyebrow">Implied price</span>
+          <b id="rPrice">$0.00</b>
+          <span class="delta" id="rDelta"></span>
+        </div>
+        <div>
+          <div class="row"><span>Sealed notional per year</span><b id="rNotional"></b></div>
+          <div class="row"><span>Fees per year</span><b id="rFees"></b></div>
+          <div class="row"><span>Fees reaching $NIL</span><b id="rToNil"></b></div>
+          <div class="row"><span>Implied fully diluted value</span><b id="rValue"></b></div>
+          <div class="row"><span>Today's FDV ÷ those fees</span><b id="rToday"></b></div>
+          <div class="row"><span>Fee yield on today's FDV</span><b id="rYield"></b></div>
+          <div class="row"><span>Covenants a day, at a $25k average order</span><b id="rCount"></b></div>
+        </div>
+        <p class="callout" id="rRead"></p>
+        <div class="share">
+          <button type="button" class="primary" id="copyLink">Copy link to this scenario</button>
+          <button type="button" id="copyText">Copy as text</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="grid">
+    <div class="head">
+      <div class="chap"><b>04</b><span class="eyebrow">Sensitivity</span></div>
+      <h2>Hyperliquid alone: price by share sealed and multiple</h2>
+      <p class="lede">Each cell counts only Hyperliquid's resting orders, using your fee, share-to-$NIL and supply settings. Shaded cells beat today's price. The outlined cell is the one closest to your inputs.</p>
+    </div>
+    <div class="scroll"><table class="sens" id="sens"></table></div>
+  </section>
+
+  <section id="supply">
+    <div class="head">
+      <div class="chap"><b>05</b><span class="eyebrow">Supply</span></div>
+      <h2>About 19.5M NIL unlocks every month until early 2028</h2>
+      <p class="lede">The 30-month buckets (ecosystem, community, protocol development) finish around March 2028. Investors and team keep unlocking about 8.5M a month until about March 2029. Emissions add about 5M a year on top, with no supply cap. The chart is estimated from published vesting terms.</p>
+    </div>
+    <div class="two">
+      <div class="panel"><svg class="chart" id="supplyChart" viewBox="0 0 640 300" role="img" aria-label="Projected circulating NIL supply"></svg><p class="note">Next unlock: <b id="nextUnlock">24 Oct 2026</b>, about 19.5M NIL (ecosystem 6.9M, early backers 4.4M, core 4.2M, protocol 2.5M, community 1.5M). Some trackers show 16.2M a month instead.</p></div>
+      <div class="panel">
+        <span class="eyebrow">Can usage absorb it at today's flat fee?</span>
+        <div class="field"><div class="top"><label for="cpd">Covenants posted per day</label><output id="cpdOut"></output></div><input id="cpd" type="range" min="0" max="50000" step="100" value="1000"></div>
+        <div class="field"><div class="top"><label for="ff">Fee per Covenant</label><output id="ffOut"></output></div><input id="ff" type="range" min="8" max="256" step="8" value="64"></div>
+        <div class="row"><span>NIL paid in fees per year</span><b id="fYear"></b></div>
+        <div class="row"><span>At today's price</span><b id="fUsd"></b></div>
+        <div class="row"><span>Share of yearly unlocks (~234M)</span><b id="fPct"></b></div>
+        <div class="meter" aria-hidden="true"><i id="fMeter"></i></div>
+        <p class="note" id="fRead"></p>
+      </div>
+    </div>
+  </section>
+
+  <section id="multiples">
+    <div class="head">
+      <div class="chap"><b>06</b><span class="eyebrow">What the market pays for fees</span></div>
+      <h2>Market cap ÷ fees over the last 12 months, log scale</h2>
+      <p class="lede">The blue bar is $NIL's FDV divided by the fees your scenario would send to the token. A shorter bar means cheaper.</p>
+    </div>
+    <div class="panel"><svg class="chart" id="multChart" viewBox="0 0 720 380" role="img" aria-label="Market cap to fees multiples"></svg><p class="note">DefiLlama fees over the last 12 months and CoinGecko market caps, 13 Oct 2026. ETH, SOL and BNB revenue is burn. ZEC, XMR and BTC have almost no tracked fees.</p></div>
+  </section>
+
+  <section id="peers">
+    <div class="head">
+      <div class="chap"><b>07</b><span class="eyebrow">Peers</span></div>
+      <h2>$NIL at a peer's valuation</h2>
+      <p class="lede">What one NIL would be worth if Nillion traded at each project's size. Fully diluted divides by 1,011M NIL, market cap by circulating supply.</p>
+      <div class="toggle" role="group" aria-label="Valuation basis"><button type="button" data-basis="fdv" aria-pressed="true">Fully diluted</button><button type="button" data-basis="mcap" aria-pressed="false">Market cap</button></div>
+    </div>
+    <div class="scroll"><table class="peers" id="peersTable"></table></div>
+    <p class="note">CoinGecko and DefiLlama, 13 Oct 2026. Renegade, Fhenix, Inco and Silhouette have no live token. Railgun is the only privacy protocol here with meaningful tracked fees ($4.2M over 12 months).</p>
+  </section>
+
+  <section id="context">
+    <div class="head">
+      <div class="chap"><b>08</b><span class="eyebrow">Market context</span></div>
+      <h2>The flow that could be sealed</h2>
+    </div>
+    <div class="ctx">
+      <div><b>$7.9T</b><span>perp DEX volume in 2025</span><a href="https://cointelegraph.com/news/perpetuals-dex-volume-2025-onchain-derivatives-growth">Cointelegraph / DefiLlama</a></div>
+      <div><b>12.3%</b><span>perp DEX share of all perp volume, Sep 2026</span><a href="https://forklog.com/en/?p=104603">Castle Labs / Forklog</a></div>
+      <div><b>$913M</b><span>Hyperliquid fees over 12 months, $695M to holders</span><a href="https://defillama.com/protocol/hyperliquid">DefiLlama</a></div>
+      <div><b>$45.3B</b><span>Kalshi + Polymarket volume, Aug 2026</span><a href="https://www.theblock.co/news/business/2026-09-02-kalshi-polymarkets-volume-falls-august-413309">The Block</a></div>
+      <div><b>$23.1B</b><span>tokenized stock transfers per month</span><a href="https://www.cointelegraph.com/news/tokenized-stock-holders-double-to-13m-as-activity-grows">rwa.xyz / Cointelegraph</a></div>
+      <div><b>$57.4B</b><span>CoW Swap volume over 12 months, now with TWAP orders for any wallet</span><a href="https://defillama.com/protocol/cow-swap">DefiLlama</a></div>
+      <div><b>17.7%</b><span>US equity volume in dark pools, 2025</span><a href="https://www.rblt.com/market-structure-reports/let-there-be-light-us-edition-75">Rosenblatt</a></div>
+      <div><b>~$39B/day</b><span>crypto OTC volume, 2024 estimate</span><a href="https://finerymarkets.com/blog/crypto-otc-trading-report-2024">Finery Markets</a></div>
+      <div><b>$19B</b><span>liquidated on 10 Oct 2025, ~$10B on Hyperliquid</span><a href="https://thedefiant.io/news/defi/defi-stress-test-in-friday-oct-10-2025-market-crash">The Defiant</a></div>
+    </div>
+  </section>
+
+  <section id="roadmap">
+    <div class="head">
+      <div class="chap"><b>09</b><span class="eyebrow">Roadmap · what each phase unlocks for value</span></div>
+      <h2>A primitive on one chain becomes a default on every chain</h2>
+    </div>
+    <ol class="road">
+      <li class="now"><time>Aug–Nov 2026</time><h3>Dusk</h3><p class="note">Covenants on Ethereum L1, staked nodes, SDK. Baseline tokenomics due.</p><span class="val">You are here</span></li>
+      <li><time>Nov 2026–Feb 2027</time><h3>Darkfall</h3><p class="note">Every EVM chain on one node set. Stake once, earn everywhere.</p><span class="val">More chains</span></li>
+      <li><time>Feb–May 2027</time><h3>Skyglow</h3><p class="note">Observe a condition on one chain, settle on another.</p><span class="val">Hyperliquid reachable</span></li>
+      <li><time>May–Aug 2027</time><h3>Nightside</h3><p class="note">Any attestable feed can be a condition. Fees priced by condition class.</p><span class="val">Beyond trading</span></li>
+      <li><time>Aug–Oct 2027</time><h3>Neon</h3><p class="note">A Covenants language and VM. Conditions private even from nodes. Slashing.</p><span class="val">Trust gap closes</span></li>
+      <li><time>Oct 2027–Jan 2028</time><h3>Aurora</h3><p class="note">Post-quantum sealing, FHE coprocessors.</p><span class="val">Durability</span></li>
+      <li><time>Dec 2027–Feb 2028</time><h3>Moonshine</h3><p class="note">About 10× cheaper. Cent-level fees, stake NIL for capacity, review of the emission taper.</p><span class="val">Holding = usage</span></li>
+    </ol>
+    <p class="note">From <a href="https://nillion.com/roadmap/">nillion.com/roadmap</a>. Delivery so far: testnet on time, the first app a week late, mainnet about a week late (5 Oct vs 28 Sep).</p>
+  </section>
+
+  <section id="risks">
+    <div class="head">
+      <div class="chap"><b>10</b><span class="eyebrow">Why it might deserve to be cheap</span></div>
+      <h2>What kills the thesis</h2>
+    </div>
+    <div class="risks">
+      <div><h3>No fees reach the token</h3><p>The 64 NIL fee goes to the treasury. There is no burn, buyback or fee share, and no tokenomics document yet.</p></div>
+      <div><h3>The headline venue arrives in 2027</h3><p>Hyperliquid can't be reached until Skyglow. V1 is Ethereum only, with price or time conditions on BTC, ETH, SOL and USDT.</p></div>
+      <div><h3>Committee trust</h3><p>Any k nodes can read pending instructions, and nobody would know, until Neon in late 2027. The node set is 31 and mostly young.</p></div>
+      <div><h3>Latency</h3><p>The feed goes to nodes, then Ethereum's 12-second blocks. Reveals have taken about 78 seconds or more. On 10 Oct 2025 Hyperliquid force-closed ~$7.6B in 12 minutes, so a late fill is a bad fill.</p></div>
+      <div><h3>Supply</h3><p>About 19.5M NIL a month until early 2028, with circulating up ~58% by the end of 2027. The token is upgradeable and has a mint role, reportedly held by a 3-of-5 Safe with no timelock.</p></div>
+      <div><h3>Competition</h3><p>Zama (~$880M FDV) could ship encrypted conditional orders. Aster, Paradex and Silhouette already hide orders on their own venues. Fees tend to go to whoever runs matching.</p></div>
+      <div><h3>The market chose transparency</h3><p>Hyperliquid won by being fully public, and privacy-first venues lost share. Regulated flow may stay private on CME, Coinbase and Kalshi servers.</p></div>
+      <div><h3>History</h3><p>A market maker dumped ~65M NIL in Nov 2025, and the story has been reframed four times in 18 months. A new CEO cleaned house in 2026, but that trust still has to be earned back.</p></div>
+    </div>
+  </section>
+
+  <section id="watch">
+    <div class="head">
+      <div class="chap"><b>11</b><span class="eyebrow">Watchlist</span></div>
+      <h2>What would change the numbers</h2>
+    </div>
+    <ul class="watch">
+      <li><span class="st wip">Tracking</span><span>Covenants posted per day on mainnet</span><span class="now">tracking</span></li>
+      <li><span class="st no">Not yet</span><span>Tokenomics document: where fees go, whether there's a burn, buyback or fee share</span><span class="now">due in the Dusk phase</span></li>
+      <li><span class="st no">Not yet</span><span>A public source for a notional (bps) fee</span><span class="now">flat 64 NIL only</span></li>
+      <li><span class="st no">Not yet</span><span>First real integration: a venue, vault, auction or agent framework</span><span class="now">none named</span></li>
+      <li><span class="st wip">Scheduled</span><span>Darkfall: every EVM chain</span><span class="now">Nov 2026</span></li>
+      <li><span class="st yes">Done</span><span>Mainnet live on Ethereum</span><span class="now">5 Oct 2026</span></li>
+    </ul>
+  </section>
+
+  <section id="sources">
+    <div class="head">
+      <div class="chap"><b>12</b><span class="eyebrow">Method and sources</span></div>
+      <h2>How the numbers were built</h2>
+      <p class="lede">Implied price = Σ(market flow × share sealed) × fee × share reaching $NIL × multiple ÷ supply. Price, market cap and onchain counts load live when possible. If they can't load, the page falls back to the 13 Oct 2026 snapshot.</p>
+    </div>
+    <ul class="src">
+      <li>Onchain: TriggerMarket <span class="num">0xe04A…5744</span>, Staking <span class="num">0xAcD5…D21b</span>, NodeRegistry <span class="num">0x9A26…3be2</span>, Emissions <span class="num">0xeff5…9C62</span>, ProtocolConfig <span class="num">0xa757…dc03</span>. Full event scan of blocks 26,084,540 to 26,185,094.</li>
+      <li>Prices and supply: <a href="https://www.coingecko.com/en/coins/nillion">CoinGecko</a>. Vesting: <a href="https://tokenomist.ai/nillion">Tokenomist</a>, <a href="https://app.blockworks.com/projects/nillion/token-unlocks">Blockworks</a>.</li>
+      <li>Fees and volumes: <a href="https://defillama.com">DefiLlama</a> (fees, revenue, DEX, options, aggregators).</li>
+      <li>Roadmap and fees: <a href="https://nillion.com/roadmap/">Nillion roadmap</a>, <a href="https://docs.nillion.com/blacklight/l1/sdk">Covenants SDK docs</a>, <a href="https://docs.nillion.com/blacklight/learn/staking-and-rewards">staking docs</a>, <a href="https://nillion.com/news/blacklight-node-migration-the-move-to-ethereum-l1">L1 migration post</a>.</li>
+      <li>Hyperliquid resting-order sample: @thatmarkmac (Nillion), as cited in the articles below. The original thread wasn't independently located.</li>
+      <li>Equity market structure: <a href="https://www.rblt.com/market-structure-reports/let-there-be-light-us-edition-75">Rosenblatt</a>. Prediction markets: <a href="https://www.theblock.co/news/business/2026-09-02-kalshi-polymarkets-volume-falls-august-413309">The Block</a>. Tokenized stocks: rwa.xyz.</li>
+      <li>Analysis: <a href="https://x.com/nikshepsvn/status/2103193363805819201">"$NIL is building encrypted markets"</a> (25 Sep 2026) and <a href="https://x.com/nikshepsvn/status/2108198153271038284">"the market pays billions for nothing"</a> (8 Oct 2026) by @nikshepsvn.</li>
+    </ul>
+  </section>
+
+  <footer>
+    <p>The author holds a large long position in $NIL. This is a scenario calculator, not a forecast, and not financial advice. If a number is wrong, say so and it will be fixed.</p>
+    <p>Built by <a href="https://x.com/nikshepsvn">@nikshepsvn</a>.</p>
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- snapshot data (13 Oct 2026); live values overwrite these where available ---------- */
+  const S = {
+    price: 0.0741, totalSupply: 1010.93e6, circ: 507.9e6, endOf2027: 800e6,
+    covenants: 8, staked: 11.58e6, nodes: 31, emissionsYr: 5.01e6, unlockMo: 19.5e6
+  };
+  const FLOWS = { hl: 1.04e12, pd: 1.80e12, sp: 3.47e12, pm: 0.54e12, ts: 0.277e12, otc: 14.2e12 };
+  const KEYS = ["hl", "pd", "sp", "pm", "ts", "otc", "ot", "bps", "acc", "mult"];
+  const PRESETS = {
+    bear:    { hl: 0.5, pd: 0,  sp: 0,   pm: 0, ts: 0, otc: 0,   ot: 0,   bps: 5,  acc: 25,  mult: 15, sup: "fdv" },
+    article: { hl: 1,   pd: 0,  sp: 0,   pm: 0, ts: 0, otc: 0,   ot: 0,   bps: 10, acc: 100, mult: 30, sup: "fdv" },
+    bull:    { hl: 10,  pd: 3,  sp: 0.5, pm: 1, ts: 1, otc: 0.1, ot: 0,   bps: 10, acc: 50,  mult: 30, sup: "fdv" },
+    moon:    { hl: 25,  pd: 10, sp: 2,   pm: 5, ts: 5, otc: 0.5, ot: 100, bps: 10, acc: 100, mult: 50, sup: "fdv" }
+  };
+  const MULTS = [
+    { n: "ETH", v: 1671 }, { n: "BNB", v: 532 }, { n: "SOL", v: 265 }, { n: "TRX", v: 91 },
+    { n: "RAIL", v: 42.6 }, { n: "HYPE", v: 19.7 }, { n: "UNI", v: 5.0 }, { n: "JUP", v: 4.3 },
+    { n: "XMR", v: 7100 }, { n: "BTC", v: 22000 }, { n: "ZEC", v: 28800 }
+  ];
+  const PEERS = [
+    { n: "Zcash", t: "ZEC", note: "private money", mcap: 20.45e9, fdv: 20.46e9, fees: 0.71e6 },
+    { n: "Hyperliquid", t: "HYPE", note: "the venue", mcap: 18.0e9, fdv: 77.4e9, fees: 913e6 },
+    { n: "Monero", t: "XMR", note: "private money", mcap: 9.94e9, fdv: 9.94e9, fees: 1.40e6 },
+    { n: "Midnight", t: "NIGHT", note: "ZK privacy L1", mcap: 742e6, fdv: 1.07e9, fees: null },
+    { n: "Zama", t: "ZAMA", note: "FHE, could build this", mcap: 198e6, fdv: 883e6, fees: null },
+    { n: "Arcium", t: "ARX", note: "MPC dark pools", mcap: 51e6, fdv: 247e6, fees: null },
+    { n: "Aztec", t: "AZTEC", note: "private L2", mcap: 60e6, fdv: 207e6, fees: null },
+    { n: "Railgun", t: "RAIL", note: "privacy with real fees", mcap: 180e6, fdv: 180e6, fees: 4.23e6 },
+    { n: "Oasis", t: "ROSE", note: "confidential compute", mcap: 68e6, fdv: 84e6, fees: null },
+    { n: "Aleo", t: "ALEO", note: "ZK L1", mcap: 55e6, fdv: 77e6, fees: null },
+    { n: "Nillion", t: "NIL", note: "today", mcap: null, fdv: null, fees: 0, self: true },
+    { n: "Phala", t: "PHA", note: "TEE cloud", mcap: 47e6, fdv: 55e6, fees: null },
+    { n: "Nym", t: "NYM", note: "mixnet", mcap: 22e6, fdv: 26e6, fees: null },
+    { n: "Secret", t: "SCRT", note: "TEE L1", mcap: 5.5e6, fdv: 11.6e6, fees: null }
+  ];
+  const RPC = ["https://ethereum-rpc.publicnode.com", "https://gateway.tenderly.co/public/mainnet"];
+
+  const $ = (id) => document.getElementById(id);
+  const fdv = () => S.price * S.totalSupply;
+  const mcap = () => S.price * S.circ;
+
+  /* ---------- formatting ---------- */
+  function money(n) {
+    if (n == null || !isFinite(n)) return "–";
+    const a = Math.abs(n);
+    if (a >= 1e12) return "$" + (n / 1e12).toFixed(2) + "T";
+    if (a >= 1e9) return "$" + (n / 1e9).toFixed(a >= 1e10 ? 1 : 2) + "B";
+    if (a >= 1e6) return "$" + (n / 1e6).toFixed(a >= 1e8 ? 0 : 1) + "M";
+    if (a >= 1e3) return "$" + (n / 1e3).toFixed(0) + "k";
+    return "$" + n.toFixed(0);
+  }
+  function price(p) {
+    if (!isFinite(p)) return "–";
+    if (p >= 100) return "$" + p.toFixed(0);
+    if (p >= 10) return "$" + p.toFixed(1);
+    if (p >= 1) return "$" + p.toFixed(2);
+    if (p >= 0.01) return "$" + p.toFixed(3);
+    return "$" + p.toFixed(4);
+  }
+  const multFmt = (m) => !isFinite(m) ? "no fees" : m >= 100 ? Math.round(m).toLocaleString("en-US") + "×" : m.toFixed(1) + "×";
+  const tokens = (n) => n >= 1e6 ? (n / 1e6).toFixed(n >= 1e8 ? 0 : 1) + "M" : Math.round(n).toLocaleString("en-US");
+  function toast(msg) {
+    const t = document.createElement("div");
+    t.className = "toast"; t.textContent = msg; document.body.appendChild(t);
+    setTimeout(() => t.remove(), 1800);
+  }
+
+  /* ---------- theme ---------- */
+  const themes = ["auto", "light", "dark"];
+  let theme = "auto";
+  try { theme = localStorage.getItem("nil-theme") || "auto"; } catch (e) {}
+  function applyTheme() {
+    if (theme === "auto") document.documentElement.removeAttribute("data-theme");
+    else document.documentElement.setAttribute("data-theme", theme);
+    $("themeBtn").textContent = "Theme: " + theme;
+  }
+  $("themeBtn").addEventListener("click", () => {
+    theme = themes[(themes.indexOf(theme) + 1) % themes.length];
+    try { localStorage.setItem("nil-theme", theme); } catch (e) {}
+    applyTheme();
+  });
+  applyTheme();
+
+  /* ---------- model ---------- */
+  function supplyFor(key) { return key === "circ" ? S.circ : key === "e27" ? S.endOf2027 : S.totalSupply; }
+  function read() {
+    const v = {};
+    KEYS.forEach((k) => { v[k] = +$(k).value; });
+    v.sup = $("sup").value;
+    return v;
+  }
+  function model(v) {
+    let notional = v.ot * 1e9;
+    ["hl", "pd", "sp", "pm", "ts", "otc"].forEach((k) => { notional += FLOWS[k] * v[k] / 100; });
+    const fees = notional * v.bps / 1e4;
+    const toNil = fees * v.acc / 100;
+    const value = toNil * v.mult;
+    return { notional, fees, toNil, value, px: value / supplyFor(v.sup) };
+  }
+  function setOut(k, v) {
+    if (k === "ot") { $("otOut").textContent = money(v.ot * 1e9) + "/yr"; return; }
+    $(k + "Out").textContent = v[k] + "% · " + money(FLOWS[k] * v[k] / 100);
+  }
+  function render() {
+    const v = read();
+    ["hl", "pd", "sp", "pm", "ts", "otc", "ot"].forEach((k) => setOut(k, v));
+    $("bpsOut").textContent = v.bps + " bps";
+    $("accOut").textContent = v.acc + "%";
+    $("multOut").textContent = v.mult + "×";
+
+    const r = model(v);
+    $("rPrice").textContent = price(r.px);
+    const x = r.px / S.price;
+    const d = $("rDelta");
+    d.textContent = (x >= 1 ? "▲ " : "▼ ") + (x >= 10 ? x.toFixed(0) : x.toFixed(2)) + "× today's " + price(S.price);
+    d.className = "delta " + (x >= 1 ? "up" : "down");
+    $("rNotional").textContent = money(r.notional);
+    $("rFees").textContent = money(r.fees);
+    $("rToNil").textContent = money(r.toNil);
+    $("rValue").textContent = money(r.value);
+    const todayMult = fdv() / r.toNil;
+    $("rToday").textContent = multFmt(todayMult);
+    $("rYield").textContent = r.toNil > 0 ? (r.toNil / fdv() * 100).toFixed(1) + "%" : "0%";
+    const perDay = r.notional / 25000 / 365;
+    $("rCount").textContent = perDay >= 1 ? Math.round(perDay).toLocaleString("en-US") : "0";
+    $("rRead").textContent = r.toNil > 0
+      ? "At these inputs today's FDV is " + multFmt(todayMult) + " the fees that would reach $NIL. For comparison: HYPE ~20×, Railgun ~43×, SOL ~265×, ETH ~1,670×."
+      : "No fees reach the token at these inputs, so the price rests on the roadmap alone.";
+    renderSens(v);
+    renderMultChart(todayMult);
+    writeHash(v);
+  }
+
+  /* ---------- url state ---------- */
+  function writeHash(v) {
+    const parts = KEYS.map((k) => k + "=" + v[k]).concat("sup=" + v.sup);
+    try { history.replaceState(null, "", "#" + parts.join("&")); } catch (e) {}
+  }
+  function readHash() {
+    const h = (location.hash || "").replace(/^#/, "");
+    if (!h.includes("=")) return null;
+    const o = {};
+    h.split("&").forEach((p) => { const [k, val] = p.split("="); if (k) o[k] = decodeURIComponent(val || ""); });
+    return o;
+  }
+  function apply(o) {
+    KEYS.forEach((k) => { if (o[k] != null && o[k] !== "") $(k).value = o[k]; });
+    if (o.sup && ["fdv", "e27", "circ"].includes(o.sup)) $("sup").value = o.sup;
+  }
+  function markPreset(name) {
+    document.querySelectorAll("[data-preset]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.preset === name)));
+  }
+
+  /* ---------- sensitivity ---------- */
+  function renderSens(v) {
+    const rows = [0.1, 0.5, 1, 2, 5, 10, 25];
+    const cols = [5, 20, 43, 100, 265];
+    const near = (arr, x) => arr.reduce((a, b) => Math.abs(b - x) < Math.abs(a - x) ? b : a);
+    const rr = near(rows, v.hl), cc = near(cols, v.mult);
+    const sup = supplyFor(v.sup);
+    let h = "<thead><tr><th>Hyperliquid sealed</th>" + cols.map((c) => '<th class="n">' + c + "× fees</th>").join("") + "</tr></thead><tbody>";
+    rows.forEach((row) => {
+      h += "<tr><td>" + row + "% · " + money(FLOWS.hl * row / 100) + "</td>";
+      cols.forEach((col) => {
+        const px = FLOWS.hl * row / 100 * v.bps / 1e4 * v.acc / 100 * col / sup;
+        const cls = [px > S.price ? "hot" : "", row === rr && col === cc ? "cur" : ""].join(" ").trim();
+        h += "<td" + (cls ? ' class="' + cls + '"' : "") + ">" + price(px) + "</td>";
+      });
+      h += "</tr>";
+    });
+    $("sens").innerHTML = h + "</tbody>";
+  }
+
+  /* ---------- multiples chart (log scale) ---------- */
+  function renderMultChart(nilMult) {
+    const svg = $("multChart");
+    const items = MULTS.slice();
+    items.push({ n: "NIL*", v: isFinite(nilMult) ? nilMult : 1e6, me: true });
+    items.sort((a, b) => a.v - b.v);
+    const W = 720, left = 70, right = 70, top = 10, rowH = 28;
+    const H = top + items.length * rowH + 30;
+    svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+    const lo = Math.log10(1), hi = Math.log10(100000);
+    const x = (v) => left + (Math.log10(Math.max(1, v)) - lo) / (hi - lo) * (W - left - right);
+    let s = "";
+    [1, 10, 100, 1000, 10000, 100000].forEach((t) => {
+      s += '<line class="grid" x1="' + x(t) + '" x2="' + x(t) + '" y1="' + top + '" y2="' + (H - 24) + '"/>';
+      s += '<text x="' + x(t) + '" y="' + (H - 8) + '" text-anchor="middle">' + (t >= 1000 ? (t / 1000) + "k" : t) + "×</text>";
+    });
+    items.forEach((it, i) => {
+      const y = top + i * rowH + 6;
+      const w = Math.max(2, x(it.v) - left);
+      s += '<text class="lbl" x="' + (left - 10) + '" y="' + (y + 12) + '" text-anchor="end">' + it.n + "</text>";
+      s += '<rect class="b' + (it.me ? " me" : "") + '" x="' + left + '" y="' + y + '" width="' + w.toFixed(1) + '" height="16" rx="1"/>';
+      const label = it.me && !isFinite(nilMult) ? "no fees" : multFmt(it.v);
+      s += '<text x="' + (left + w + 6) + '" y="' + (y + 12) + '">' + label + "</text>";
+    });
+    svg.innerHTML = s;
+  }
+
+  /* ---------- supply chart ---------- */
+  function supplySeries() {
+    const pts = [];
+    let c = S.circ;
+    const start = new Date(Date.UTC(2026, 9, 13));
+    pts.push({ d: start, c });
+    for (let m = 0; m < 30; m++) {
+      const d = new Date(Date.UTC(2026, 9 + m, 24));
+      const fast = d <= new Date(Date.UTC(2028, 2, 24));
+      c += (fast ? S.unlockMo : 8.55e6) + S.emissionsYr / 12;
+      pts.push({ d, c });
+    }
+    return pts;
+  }
+  function renderSupply() {
+    const svg = $("supplyChart");
+    const pts = supplySeries();
+    const W = 640, H = 300, l = 52, r = 16, t = 16, b = 34;
+    const t0 = pts[0].d.getTime(), t1 = pts[pts.length - 1].d.getTime();
+    const yMin = 400e6, yMax = 1100e6;
+    const X = (d) => l + (d.getTime() - t0) / (t1 - t0) * (W - l - r);
+    const Y = (c) => t + (1 - (c - yMin) / (yMax - yMin)) * (H - t - b);
+    let s = "";
+    [400, 600, 800, 1000].forEach((g) => {
+      s += '<line class="grid" x1="' + l + '" x2="' + (W - r) + '" y1="' + Y(g * 1e6) + '" y2="' + Y(g * 1e6) + '"/>';
+      s += '<text x="' + (l - 8) + '" y="' + (Y(g * 1e6) + 4) + '" text-anchor="end">' + g + "M</text>";
+    });
+    [[2027, 0], [2028, 0], [2029, 0]].forEach(([yy]) => {
+      const d = new Date(Date.UTC(yy, 0, 1));
+      s += '<text x="' + X(d) + '" y="' + (H - 12) + '" text-anchor="middle">' + yy + "</text>";
+      s += '<line class="grid" x1="' + X(d) + '" x2="' + X(d) + '" y1="' + t + '" y2="' + (H - b) + '"/>';
+    });
+    const total = S.totalSupply;
+    s += '<line class="mark" x1="' + l + '" x2="' + (W - r) + '" y1="' + Y(total) + '" y2="' + Y(total) + '"/>';
+    s += '<text x="' + (W - r) + '" y="' + (Y(total) - 6) + '" text-anchor="end">supply today 1,011M · grows with emissions</text>';
+    let path = "", area = "";
+    pts.forEach((p, i) => { path += (i ? "L" : "M") + X(p.d).toFixed(1) + " " + Y(p.c).toFixed(1); });
+    area = path + "L" + X(pts[pts.length - 1].d).toFixed(1) + " " + Y(yMin) + "L" + X(pts[0].d).toFixed(1) + " " + Y(yMin) + "Z";
+    s += '<path class="area" d="' + area + '"/><path class="linep" d="' + path + '"/>';
+    const marks = [
+      { p: pts[0], lab: "today " + Math.round(pts[0].c / 1e6) + "M", anchor: "start", dy: -10 },
+      { p: pts.find((q) => q.d.getUTCFullYear() === 2027 && q.d.getUTCMonth() === 11), lab: "end-2027 ~" + "", anchor: "end", dy: -10 },
+      { p: pts[pts.length - 1], lab: "", anchor: "end", dy: 18 }
+    ];
+    marks.forEach((m) => {
+      if (!m.p) return;
+      const lab = m.lab.endsWith("~") ? m.lab + Math.round(m.p.c / 1e6) + "M" : (m.lab || Math.round(m.p.c / 1e6) + "M by Mar 2029");
+      s += '<circle class="dot" cx="' + X(m.p.d) + '" cy="' + Y(m.p.c) + '" r="4.5"/>';
+      s += '<text class="lbl" x="' + (X(m.p.d) + (m.anchor === "start" ? 8 : -8)) + '" y="' + (Y(m.p.c) + m.dy) + '" text-anchor="' + m.anchor + '">' + lab + "</text>";
+    });
+    svg.innerHTML = s;
+    const e27 = pts.find((q) => q.d.getUTCFullYear() === 2027 && q.d.getUTCMonth() === 11);
+    if (e27) S.endOf2027 = e27.c;
+    const opt = document.querySelector('#sup option[value="e27"]');
+    if (opt && e27) opt.textContent = "End of 2027 circulating · ~" + Math.round(e27.c / 1e6) + "M NIL";
+    const optC = document.querySelector('#sup option[value="circ"]');
+    if (optC) optC.textContent = "Circulating today · ~" + Math.round(S.circ / 1e6) + "M NIL";
+  }
+
+  /* ---------- flat fee absorber ---------- */
+  function renderFlat() {
+    const cpd = +$("cpd").value, fee = +$("ff").value;
+    $("cpdOut").textContent = cpd.toLocaleString("en-US");
+    $("ffOut").textContent = fee + " NIL";
+    const yr = cpd * fee * 365;
+    const unlockYr = S.unlockMo * 12;
+    const pct = yr / unlockYr * 100;
+    $("fYear").textContent = tokens(yr) + " NIL";
+    $("fUsd").textContent = money(yr * S.price);
+    $("fPct").textContent = pct.toFixed(pct < 10 ? 1 : 0) + "%";
+    $("fMeter").style.width = Math.min(100, pct) + "%";
+    const be = Math.ceil(unlockYr / (fee * 365));
+    $("fRead").textContent = "At " + fee + " NIL each, about " + be.toLocaleString("en-US") + " Covenants a day would match every unlock. The fee goes to the treasury, so this is demand for NIL, not a burn.";
+  }
+
+  /* ---------- peers ---------- */
+  let basis = "fdv";
+  function renderPeers() {
+    const rows = PEERS.map((p) => p.self ? Object.assign({}, p, { mcap: mcap(), fdv: fdv() }) : p);
+    rows.sort((a, b) => b[basis] - a[basis]);
+    const cap = rows.filter((p) => p[basis] < 2e9).reduce((m, p) => Math.max(m, p[basis]), 0);
+    const denom = basis === "fdv" ? S.totalSupply : S.circ;
+    let h = '<thead><tr><th>Project</th><th class="n">' + (basis === "fdv" ? "FDV" : "Market cap") + '</th><th class="barcell"></th><th class="n">Fees 12m</th><th class="n">$NIL at that size</th><th class="n">vs today</th></tr></thead><tbody>';
+    rows.forEach((p) => {
+      const px = p[basis] / denom;
+      const w = Math.min(100, p[basis] / cap * 100);
+      h += "<tr" + (p.self ? ' class="self"' : "") + "><td>" + p.n + ' <span class="note">' + p.t + " · " + p.note + '</span></td><td class="n">' + money(p[basis]) + '</td><td class="barcell"><div class="bar" style="width:' + w.toFixed(1) + '%"></div></td><td class="n">' + (p.fees == null ? "–" : p.self ? "≈$0" : money(p.fees)) + '</td><td class="n">' + price(px) + '</td><td class="n">' + (px / S.price).toFixed(px / S.price >= 10 ? 0 : 1) + "×</td></tr>";
+    });
+    $("peersTable").innerHTML = h + "</tbody>";
+  }
+
+  /* ---------- stats strip ---------- */
+  function renderStats() {
+    $("sPrice").textContent = price(S.price);
+    $("sMcap").textContent = money(mcap());
+    $("sFdv").textContent = money(fdv());
+    $("sStake").textContent = tokens(S.staked);
+    $("sNodes").textContent = S.nodes;
+    $("kNodes").textContent = S.nodes;
+    $("kStake").textContent = (S.staked / 1e6).toFixed(2) + "M";
+    $("kStakePct").textContent = (S.staked / S.circ * 100).toFixed(1) + "%";
+    $("kApr").textContent = Math.round(S.emissionsYr / S.staked * 100) + "%";
+    const now = new Date();
+    let nu = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 24));
+    if (nu < now) nu = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 24));
+    $("nextUnlock").textContent = nu.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+  }
+  function rerenderAll() { renderStats(); renderSupply(); render(); renderFlat(); renderPeers(); }
+
+  /* ---------- live data ---------- */
+  async function rpcCall(to, data) {
+    for (const url of RPC) {
+      try {
+        const res = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "eth_call", params: [{ to, data }, "latest"] }) });
+        const j = await res.json();
+        if (j.result && j.result !== "0x") return BigInt(j.result);
+      } catch (e) { /* try next */ }
+    }
+    return null;
+  }
+  async function loadLive() {
+    try {
+      const res = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=nillion&vs_currencies=usd&include_market_cap=true");
+      const j = await res.json();
+      const p = j && j.nillion && j.nillion.usd;
+      if (p) {
+        S.price = p;
+        if (j.nillion.usd_market_cap) S.circ = j.nillion.usd_market_cap / p;
+        $("lvPrice").classList.remove("stale");
+        $("asOf").textContent = "live · " + new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+      }
+    } catch (e) { /* keep snapshot */ }
+    const [stake, nodes] = await Promise.all([
+      rpcCall("0xAcD5D3d8Eacb9f60CfEb6F26D65FB9CB9b06D21b", "0x817b1cd2"),
+      rpcCall("0x9A2667ec55c769f49906d7aB718d36aE26c23be2", "0x20eca391")
+    ]);
+    if (stake != null) { S.staked = Number(stake) / 1e6; $("lvStake").classList.remove("stale"); }
+    if (nodes != null) { S.nodes = Number(nodes) - 1; $("lvNodes").classList.remove("stale"); }
+    rerenderAll();
+  }
+
+  /* ---------- wiring ---------- */
+  KEYS.forEach((k) => $(k).addEventListener("input", () => { markPreset(null); render(); }));
+  $("sup").addEventListener("change", () => { markPreset(null); render(); });
+  document.querySelectorAll("[data-preset]").forEach((b) => b.addEventListener("click", () => { apply(PRESETS[b.dataset.preset]); markPreset(b.dataset.preset); render(); }));
+  document.querySelectorAll("[data-mult]").forEach((b) => b.addEventListener("click", () => { $("mult").value = b.dataset.mult; markPreset(null); render(); }));
+  document.querySelectorAll("[data-basis]").forEach((b) => b.addEventListener("click", () => {
+    basis = b.dataset.basis;
+    document.querySelectorAll("[data-basis]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    renderPeers();
+  }));
+  ["cpd", "ff"].forEach((id) => $(id).addEventListener("input", renderFlat));
+  async function copy(text, ok) {
+    try { await navigator.clipboard.writeText(text); toast(ok); }
+    catch (e) { window.prompt && window.prompt("Copy this:", text); }
+  }
+  $("copyLink").addEventListener("click", () => copy(location.href, "Link copied"));
+  $("copyText").addEventListener("click", () => {
+    const v = read(), r = model(v);
+    const txt = "$NIL scenario: " + v.hl + "% of Hyperliquid resting orders sealed" + (r.notional > FLOWS.hl * v.hl / 100 ? " + more" : "") +
+      " → " + money(r.notional) + "/yr sealed, " + v.bps + "bps fee, " + v.acc + "% to $NIL, " + v.mult + "× fees → " + price(r.px) +
+      " (" + (r.px / S.price).toFixed(1) + "× today). " + location.href;
+    copy(txt, "Scenario copied");
+  });
+
+  const fromHash = readHash();
+  if (fromHash) { apply(fromHash); markPreset(null); } else { apply(PRESETS.article); markPreset("article"); }
+  rerenderAll();
+  loadLive();
+})();
+</script>
+</body>
+</html>
