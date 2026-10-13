@@ -224,6 +224,7 @@ footer { border-top: 1px solid var(--line); padding-top: 20px; color: var(--mute
   <div class="nav-in">
     <span class="brand">NIL Valuation Lab</span>
     <a href="#today">Today</a>
+    <a href="#team">Team</a>
     <a href="#model">Model</a>
     <a href="#grid">Grid</a>
     <a href="#supply">Supply</a>
@@ -280,12 +281,32 @@ footer { border-top: 1px solid var(--line); padding-top: 20px; color: var(--mute
       <div class="kpi"><span>Implied staking APR</span><b id="kApr">43%</b><small>emissions ÷ stake, before ETH fees</small></div>
       <div class="kpi"><span>Protocol fee</span><b>64 NIL</b><small>flat per Covenant, to the treasury</small></div>
     </div>
+    <div class="callout"><b>Why ~$38M market cap is absurd:</b> it is less than the $50M+ the company raised, less than Hyperliquid earns in fees in about 15 days, and below Aztec, Arcium and Oasis. Zama trades at ~5× it, Midnight at ~20× and Zcash at ~540×. This is a live mainnet protocol run by two former Algorand CTOs.</div>
     <p class="verdict">It's early, so today's price is mostly a bet on the roadmap. The rest of this page models what the token could be worth if order flow arrives and fees reach holders, and it marks the inputs that nobody can source yet.</p>
+  </section>
+
+  <section id="team">
+    <div class="head">
+      <div class="chap"><b>03</b><span class="eyebrow">Team, tech and backers</span></div>
+      <h2>Two former Algorand CTOs now run it</h2>
+      <p class="lede">After a rough 2025, Nillion rebuilt its leadership around protocol engineers who have shipped L1s. The current team built Covenants.</p>
+    </div>
+    <div class="three">
+      <div class="card"><span class="eyebrow">CEO · since Jan 2026</span><h3>John Woods</h3><p>CTO of the Algorand Foundation (2022–2025) and earlier a Cardano architect at IOHK. He joined Nillion as CTO in July 2025, took over as CEO, cut burn by ~45% and published the post-mortem himself.</p></div>
+      <div class="card"><span class="eyebrow">CTO · announced 13 Oct 2026</span><h3>Bruno Martins</h3><p>CTO and Chief Architect at the Algorand Foundation, previously at ConsenSys and IOHK. He now leads core technology and Covenants development. <a href="https://x.com/nillion/status/2110040940467687611">Announcement</a></p></div>
+      <div class="card"><span class="eyebrow">Science and money</span><h3>Miguel de Vega, Matthew Pollard</h3><p>Co-founder and chief scientist de Vega is the inventor on granted US and EU patents for messageless MPC (assigned to Sedicii). CFO Pollard (FCA) joined in Feb 2026 to fix market making.</p></div>
+    </div>
+    <div class="kpis">
+      <div class="kpi"><span>Raised</span><b>$50M+</b><small>more than the current market cap</small></div>
+      <div class="kpi"><span>Lead investors</span><b>Hack VC</b><small>Distributed Global, HashKey, Animoca, GSR, Maelstrom</small></div>
+      <div class="kpi"><span>Angels</span><b>Hayes · Ansem</b><small>also Meltem Demirors</small></div>
+      <div class="kpi"><span>Cryptography</span><b>Threshold IBE</b><small>Boneh–Franklin on Ethereum precompiles. No keeper and no single key holder.</small></div>
+    </div>
   </section>
 
   <section id="model">
     <div class="head">
-      <div class="chap"><b>03</b><span class="eyebrow">The model</span></div>
+      <div class="chap"><b>04</b><span class="eyebrow">The model</span></div>
       <h2>Sealed flow × fee × share to $NIL × multiple</h2>
       <p class="lede">Choose how much of each market gets sealed, what it pays, how much of that reaches the token and what multiple the market gives it. Every setting is saved in the link, so you can share a scenario.</p>
     </div>
@@ -322,9 +343,9 @@ footer { border-top: 1px solid var(--line); padding-top: 20px; color: var(--mute
           </div>
           <div class="field"><label for="sup">Supply to divide by</label>
             <select id="sup">
-              <option value="fdv">Fully diluted · 1,011M NIL</option>
-              <option value="e27">End of 2027 circulating · ~800M NIL</option>
               <option value="circ">Circulating today · ~508M NIL</option>
+              <option value="e27">End of 2027 circulating · ~800M NIL</option>
+              <option value="fdv">Fully diluted · 1,011M NIL</option>
             </select>
           </div>
         </div>
@@ -340,9 +361,9 @@ footer { border-top: 1px solid var(--line); padding-top: 20px; color: var(--mute
           <div class="row"><span>Sealed notional per year</span><b id="rNotional"></b></div>
           <div class="row"><span>Fees per year</span><b id="rFees"></b></div>
           <div class="row"><span>Fees reaching $NIL</span><b id="rToNil"></b></div>
-          <div class="row"><span>Implied fully diluted value</span><b id="rValue"></b></div>
-          <div class="row"><span>Today's FDV ÷ those fees</span><b id="rToday"></b></div>
-          <div class="row"><span>Fee yield on today's FDV</span><b id="rYield"></b></div>
+          <div class="row"><span>Implied valuation</span><b id="rValue"></b></div>
+          <div class="row"><span>Today's market cap ÷ those fees</span><b id="rToday"></b></div>
+          <div class="row"><span>Fee yield on today's market cap</span><b id="rYield"></b></div>
           <div class="row"><span>Covenants a day, at a $25k average order</span><b id="rCount"></b></div>
         </div>
         <p class="callout" id="rRead"></p>
@@ -356,7 +377,7 @@ footer { border-top: 1px solid var(--line); padding-top: 20px; color: var(--mute
 
   <section id="grid">
     <div class="head">
-      <div class="chap"><b>04</b><span class="eyebrow">Sensitivity</span></div>
+      <div class="chap"><b>05</b><span class="eyebrow">Sensitivity</span></div>
       <h2>Hyperliquid alone: price by share sealed and multiple</h2>
       <p class="lede">Each cell counts only Hyperliquid's resting orders, using your fee, share-to-$NIL and supply settings. Shaded cells beat today's price. The outlined cell is the one closest to your inputs.</p>
     </div>
@@ -365,7 +386,7 @@ footer { border-top: 1px solid var(--line); padding-top: 20px; color: var(--mute
 
   <section id="supply">
     <div class="head">
-      <div class="chap"><b>05</b><span class="eyebrow">Supply</span></div>
+      <div class="chap"><b>06</b><span class="eyebrow">Supply</span></div>
       <h2>About 19.5M NIL unlocks every month until early 2028</h2>
       <p class="lede">The 30-month buckets (ecosystem, community, protocol development) finish around March 2028. Investors and team keep unlocking about 8.5M a month until about March 2029. Emissions add about 5M a year on top, with no supply cap. The chart is estimated from published vesting terms.</p>
     </div>
@@ -386,19 +407,19 @@ footer { border-top: 1px solid var(--line); padding-top: 20px; color: var(--mute
 
   <section id="multiples">
     <div class="head">
-      <div class="chap"><b>06</b><span class="eyebrow">What the market pays for fees</span></div>
+      <div class="chap"><b>07</b><span class="eyebrow">What the market pays for fees</span></div>
       <h2>Market cap ÷ fees over the last 12 months, log scale</h2>
-      <p class="lede">The blue bar is $NIL's FDV divided by the fees your scenario would send to the token. A shorter bar means cheaper.</p>
+      <p class="lede">The blue bar is $NIL's market cap divided by the fees your scenario would send to the token. A shorter bar means cheaper.</p>
     </div>
     <div class="panel"><svg class="chart" id="multChart" viewBox="0 0 720 380" role="img" aria-label="Market cap to fees multiples"></svg><p class="note">DefiLlama fees over the last 12 months and CoinGecko market caps, 13 Oct 2026. ETH, SOL and BNB revenue is burn. ZEC, XMR and BTC have almost no tracked fees.</p></div>
   </section>
 
   <section id="peers">
     <div class="head">
-      <div class="chap"><b>07</b><span class="eyebrow">Peers</span></div>
+      <div class="chap"><b>08</b><span class="eyebrow">Peers</span></div>
       <h2>$NIL at a peer's valuation</h2>
-      <p class="lede">What one NIL would be worth if Nillion traded at each project's size. Fully diluted divides by 1,011M NIL, market cap by circulating supply.</p>
-      <div class="toggle" role="group" aria-label="Valuation basis"><button type="button" data-basis="fdv" aria-pressed="true">Fully diluted</button><button type="button" data-basis="mcap" aria-pressed="false">Market cap</button></div>
+      <p class="lede">What one NIL would be worth if Nillion traded at each project's size. Market cap divides by circulating supply, fully diluted by 1,011M NIL.</p>
+      <div class="toggle" role="group" aria-label="Valuation basis"><button type="button" data-basis="mcap" aria-pressed="true">Market cap</button><button type="button" data-basis="fdv" aria-pressed="false">Fully diluted</button></div>
     </div>
     <div class="scroll"><table class="peers" id="peersTable"></table></div>
     <p class="note">CoinGecko and DefiLlama, 13 Oct 2026. Renegade, Fhenix, Inco and Silhouette have no live token. Railgun is the only privacy protocol here with meaningful tracked fees ($4.2M over 12 months).</p>
@@ -406,7 +427,7 @@ footer { border-top: 1px solid var(--line); padding-top: 20px; color: var(--mute
 
   <section id="context">
     <div class="head">
-      <div class="chap"><b>08</b><span class="eyebrow">Market context</span></div>
+      <div class="chap"><b>09</b><span class="eyebrow">Market context</span></div>
       <h2>The flow that could be sealed</h2>
     </div>
     <div class="ctx">
@@ -424,7 +445,7 @@ footer { border-top: 1px solid var(--line); padding-top: 20px; color: var(--mute
 
   <section id="roadmap">
     <div class="head">
-      <div class="chap"><b>09</b><span class="eyebrow">Roadmap · what each phase unlocks for value</span></div>
+      <div class="chap"><b>10</b><span class="eyebrow">Roadmap · what each phase unlocks for value</span></div>
       <h2>A primitive on one chain becomes a default on every chain</h2>
     </div>
     <ol class="road">
@@ -441,7 +462,7 @@ footer { border-top: 1px solid var(--line); padding-top: 20px; color: var(--mute
 
   <section id="risks">
     <div class="head">
-      <div class="chap"><b>10</b><span class="eyebrow">Why it might deserve to be cheap</span></div>
+      <div class="chap"><b>11</b><span class="eyebrow">Why it might deserve to be cheap</span></div>
       <h2>What kills the thesis</h2>
     </div>
     <div class="risks">
@@ -458,7 +479,7 @@ footer { border-top: 1px solid var(--line); padding-top: 20px; color: var(--mute
 
   <section id="watch">
     <div class="head">
-      <div class="chap"><b>11</b><span class="eyebrow">Watchlist</span></div>
+      <div class="chap"><b>12</b><span class="eyebrow">Watchlist</span></div>
       <h2>What would change the numbers</h2>
     </div>
     <ul class="watch">
@@ -473,7 +494,7 @@ footer { border-top: 1px solid var(--line); padding-top: 20px; color: var(--mute
 
   <section id="sources">
     <div class="head">
-      <div class="chap"><b>12</b><span class="eyebrow">Method and sources</span></div>
+      <div class="chap"><b>13</b><span class="eyebrow">Method and sources</span></div>
       <h2>How the numbers were built</h2>
       <p class="lede">Implied price = Σ(market flow × share sealed) × fee × share reaching $NIL × multiple ÷ supply. Price, market cap and onchain counts load live when possible. If they can't load, the page falls back to the 13 Oct 2026 snapshot.</p>
     </div>
@@ -484,6 +505,7 @@ footer { border-top: 1px solid var(--line); padding-top: 20px; color: var(--mute
       <li>Roadmap and fees: <a href="https://nillion.com/roadmap/">Nillion roadmap</a>, <a href="https://docs.nillion.com/blacklight/l1/sdk">Covenants SDK docs</a>, <a href="https://docs.nillion.com/blacklight/learn/staking-and-rewards">staking docs</a>, <a href="https://nillion.com/news/blacklight-node-migration-the-move-to-ethereum-l1">L1 migration post</a>.</li>
       <li>Hyperliquid resting-order sample: @thatmarkmac (Nillion), as cited in the articles below. The original thread wasn't independently located.</li>
       <li>Equity market structure: <a href="https://www.rblt.com/market-structure-reports/let-there-be-light-us-edition-75">Rosenblatt</a>. Prediction markets: <a href="https://www.theblock.co/news/business/2026-09-02-kalshi-polymarkets-volume-falls-august-413309">The Block</a>. Tokenized stocks: rwa.xyz.</li>
+      <li>Team: <a href="https://x.com/nillion/status/2110040940467687611">Nillion CTO announcement</a>, <a href="https://algorand.co/blog/leadership-updates-cto-product-integrations-promotions">Algorand leadership update</a>, <a href="https://www.coindesk.com/tech/2024/10/30/privacy-blockchain-project-nillion-raises-25m-to-expand-blind-computing">CoinDesk on the $25M round</a>. Patents: Google Patents (EP4184858B1, US12236210B2, US12388629B2; assignee Sedicii Innovations).</li>
       <li>Analysis: <a href="https://x.com/nikshepsvn/status/2103193363805819201">"$NIL is building encrypted markets"</a> (25 Sep 2026) and <a href="https://x.com/nikshepsvn/status/2108198153271038284">"the market pays billions for nothing"</a> (8 Oct 2026) by @nikshepsvn.</li>
     </ul>
   </section>
@@ -506,10 +528,10 @@ footer { border-top: 1px solid var(--line); padding-top: 20px; color: var(--mute
   const FLOWS = { hl: 1.04e12, pd: 1.80e12, sp: 3.47e12, pm: 0.54e12, ts: 0.277e12, otc: 14.2e12 };
   const KEYS = ["hl", "pd", "sp", "pm", "ts", "otc", "ot", "bps", "acc", "mult"];
   const PRESETS = {
-    bear:    { hl: 0.5, pd: 0,  sp: 0,   pm: 0, ts: 0, otc: 0,   ot: 0,   bps: 5,  acc: 25,  mult: 15, sup: "fdv" },
-    article: { hl: 1,   pd: 0,  sp: 0,   pm: 0, ts: 0, otc: 0,   ot: 0,   bps: 10, acc: 100, mult: 30, sup: "fdv" },
-    bull:    { hl: 10,  pd: 3,  sp: 0.5, pm: 1, ts: 1, otc: 0.1, ot: 0,   bps: 10, acc: 50,  mult: 30, sup: "fdv" },
-    moon:    { hl: 25,  pd: 10, sp: 2,   pm: 5, ts: 5, otc: 0.5, ot: 100, bps: 10, acc: 100, mult: 50, sup: "fdv" }
+    bear:    { hl: 0.5, pd: 0,  sp: 0,   pm: 0, ts: 0, otc: 0,   ot: 0,   bps: 5,  acc: 25,  mult: 15, sup: "circ" },
+    article: { hl: 1,   pd: 0,  sp: 0,   pm: 0, ts: 0, otc: 0,   ot: 0,   bps: 10, acc: 100, mult: 30, sup: "circ" },
+    bull:    { hl: 10,  pd: 3,  sp: 0.5, pm: 1, ts: 1, otc: 0.1, ot: 0,   bps: 10, acc: 50,  mult: 30, sup: "circ" },
+    moon:    { hl: 25,  pd: 10, sp: 2,   pm: 5, ts: 5, otc: 0.5, ot: 100, bps: 10, acc: 100, mult: 50, sup: "circ" }
   };
   const MULTS = [
     { n: "ETH", v: 1671 }, { n: "BNB", v: 532 }, { n: "SOL", v: 265 }, { n: "TRX", v: 91 },
@@ -617,13 +639,13 @@ footer { border-top: 1px solid var(--line); padding-top: 20px; color: var(--mute
     $("rFees").textContent = money(r.fees);
     $("rToNil").textContent = money(r.toNil);
     $("rValue").textContent = money(r.value);
-    const todayMult = fdv() / r.toNil;
+    const todayMult = mcap() / r.toNil;
     $("rToday").textContent = multFmt(todayMult);
-    $("rYield").textContent = r.toNil > 0 ? (r.toNil / fdv() * 100).toFixed(1) + "%" : "0%";
+    $("rYield").textContent = r.toNil > 0 ? (r.toNil / mcap() * 100).toFixed(1) + "%" : "0%";
     const perDay = r.notional / 25000 / 365;
     $("rCount").textContent = perDay >= 1 ? Math.round(perDay).toLocaleString("en-US") : "0";
     $("rRead").textContent = r.toNil > 0
-      ? "At these inputs today's FDV is " + multFmt(todayMult) + " the fees that would reach $NIL. For comparison: HYPE ~20×, Railgun ~43×, SOL ~265×, ETH ~1,670×."
+      ? "At these inputs today's market cap is " + multFmt(todayMult) + " the fees that would reach $NIL. For comparison: HYPE ~20×, Railgun ~43×, SOL ~265×, ETH ~1,670×."
       : "No fees reach the token at these inputs, so the price rests on the roadmap alone.";
     renderSens(v);
     renderMultChart(todayMult);
@@ -773,7 +795,7 @@ footer { border-top: 1px solid var(--line); padding-top: 20px; color: var(--mute
   }
 
   /* ---------- peers ---------- */
-  let basis = "fdv";
+  let basis = "mcap";
   function renderPeers() {
     const rows = PEERS.map((p) => p.self ? Object.assign({}, p, { mcap: mcap(), fdv: fdv() }) : p);
     rows.sort((a, b) => b[basis] - a[basis]);
